@@ -1,0 +1,50 @@
+
+# Archivos de configuración
+appsettings.Development.json
+
+# Compilados de Visual Studio
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Archivos temporales
+*.tmp
+*.log
+*.vspscc
+*.vssscc
+*.orig
+
+# Visual Studio Code
+.vscode/
+
+# Build outputs
+*.dll
+*.exe
+*.app
+*.db
+*.pdb
+
+# Paquetes
+*.nupkg
+packages/
+*.snupkg
+
+# Configuración local de dotnet-ef
+*.dotnet-tools.json
+
+# Secretos de usuario (dotnet user-secrets)
+**/secrets.json
+
+# Base de datos local
+*.mdf
+*.ldf
+*.sqlite
+*.db
+
+# Archivos de publicación
+publish/
+out/
+
