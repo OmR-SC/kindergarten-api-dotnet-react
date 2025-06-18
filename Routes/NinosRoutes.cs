@@ -1,4 +1,6 @@
+using AutoMapper;
 using KindergartenAPI.Data;
+using KindergartenAPI.DTOs.Ninos;
 using KindergartenAPI.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +15,7 @@ namespace KindergartenAPI.Routes
             group.WithTags("Ninos");
 
             // GET /ninos
-            group.MapGet("/", async (KindergartenContext db) =>
+            group.MapGet("/", async (KindergartenContext db,IMapper mapper) =>
             {
 
                 var ninos = await db.Ninos
@@ -22,15 +24,12 @@ namespace KindergartenAPI.Routes
                    .Include(n => n.Asistencia)
                    .ToListAsync();
                     
-                    return Results.Ok(ninos);
+                var dtos = mapper.Map<List<NinoReadDto>>(ninos);
+                return Results.Ok(dtos);
             });
             // GET /ninos/{id}
-            group.MapGet("/{matricula:int}", async (int matricula, KindergartenContext db) =>
+            group.MapGet("/{matricula:int}", async (int matricula, KindergartenContext db,IMapper mapper) =>
             {
-
-                // await db.Ninos.FindAsync(matricula) is Nino nino
-                //     ? Results.Ok(nino)
-                //     : Results.NotFound();
 
                 var nino = await db.Ninos
                     .Include(n => n.CedulaPagadorNavigation)
@@ -38,46 +37,35 @@ namespace KindergartenAPI.Routes
                     .Include(n => n.Asistencia)
                     .FirstOrDefaultAsync(n => n.Matricula == matricula);
 
-               return nino is not null ?
-                    Results.Ok(nino) :
-                    Results.NotFound();
+                if (nino is null)
+                    return Results.NotFound();
+
+                return nino is not null
+                    ? Results.Ok(mapper.Map<NinoReadDto>(nino))
+                    : Results.NotFound();
                     
-
-                // return await db.Ninos
-                //     .Include(n => n.Matricula)
-                //     .Include(n => n.Alergias)
-                //         .ThenInclude(a => a.Ingrediente)
-                //     .Include(n => n.Asistencias)
-                //     .FirstOrDefaultAsync(n => n.Matricula == matricula);
             });
 
-            group.MapPost("/", async (Nino nino, KindergartenContext db) =>
+            group.MapPost("/", async (NinoCreateDto dto, KindergartenContext db,IMapper mapper) =>
             {
+                var nino = mapper.Map<Nino>(dto);
                 db.Ninos.Add(nino);
-                return await db.SaveChangesAsync() > 0
-                    ? Results.Created($"/ninos/{nino.Matricula}", nino)
-                    : Results.BadRequest("Error al crear el niño.");
+
+                await db.SaveChangesAsync();
+
+                var readDto = mapper.Map<NinoReadDto>(nino);
+                return Results.Created($"/api/v1/ninos/{nino.Matricula}", readDto);
+            
             });
 
-            group.MapPut("/{matricula:int}", async (int matricula, Nino input, KindergartenContext db) =>
+            group.MapPut("/{matricula:int}", async (int matricula, NinoUpdateDto dto, KindergartenContext db, IMapper mapper) =>
             {
-                if (matricula != input.Matricula)
-                {
-                    return Results.BadRequest("La matrícula no coincide.");
-                }
 
                 var existingNino = await db.Ninos.FindAsync(matricula);
-                if (existingNino == null)
-                {
+                if (existingNino is null)
                     return Results.NotFound();
-                }
-
-                existingNino.Nombre = input.Nombre;
-                existingNino.FechaNacimiento = input.FechaNacimiento;
-                existingNino.FechaIngreso = input.FechaIngreso;
-                existingNino.FechaBaja = input.FechaBaja;
-                existingNino.CedulaPagador = input.CedulaPagador;
-
+                
+                mapper.Map(dto, existingNino);                
                 await db.SaveChangesAsync();
                 return Results.NoContent();
             });
@@ -85,10 +73,8 @@ namespace KindergartenAPI.Routes
             group.MapDelete("/{matricula:int}", async (int matricula, KindergartenContext db) =>
             {
                 var nino = await db.Ninos.FindAsync(matricula);
-                if (nino == null)
-                {
+                if (nino is null)
                     return Results.NotFound();
-                }
 
                 db.Ninos.Remove(nino);
                 await db.SaveChangesAsync();
@@ -100,15 +86,3 @@ namespace KindergartenAPI.Routes
     }
 
 }
-
-    //     public static void MapNinosAutorizadosRoutes(this IEndpointRouteBuilder app)
-    //     {
-    //         app.MapGet("/ninos/{matricula}/autorizados", async (int matricula, KindergartenContext db) =>
-    //         {
-    //             return await db.NinoAutorizados
-    //                 .Where(na => na.Matricula == matricula)
-    //                 .Include(na => na.Persona)
-    //                 .ToListAsync();
-    //         });
-    //     }
-    // }

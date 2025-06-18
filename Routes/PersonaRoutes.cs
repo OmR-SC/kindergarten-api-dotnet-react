@@ -2,6 +2,8 @@ using KindergartenAPI.Models;
 using KindergartenAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using AutoMapper;
+using KindergartenAPI.DTOs.Personas;
 
 
 
@@ -13,46 +15,50 @@ namespace KindergartenAPI.Routes
     {
         var group = app.MapGroup("/api/v1/personas").WithTags("Personas");
 
-        group.MapGet("/", async (KindergartenContext db) =>
+        group.MapGet("/", async (KindergartenContext db,IMapper mapper) =>
         {
             var personas = await db.Personas
                 .Include(p => p.Nino_Autorizados)
                     .ThenInclude(na => na.MatriculaNavigation)
                 .ToListAsync();
-            return Results.Ok(personas);
+
+            var dto = mapper.Map<List<PersonaReadDto>>(personas);
+            return Results.Ok(dto);
 
         });
 
-        group.MapGet("/{cedula}", async (string cedula, KindergartenContext db) =>
+        group.MapGet("/{cedula}", async (string cedula, KindergartenContext db,IMapper mapper) =>
         {
             var persona = await db.Personas
                 .Include(p => p.Nino_Autorizados)
                     .ThenInclude(na => na.MatriculaNavigation)
                 .FirstOrDefaultAsync(p => p.Cedula == cedula);
 
-            return persona is not null ? Results.Ok(persona) : Results.NotFound();
+            if (persona is null)
+                    return Results.NotFound();
+
+            var dto = mapper.Map<PersonaReadDto>(persona);
+        
+            return Results.Ok(dto);
         });
 
-        group.MapPost("/", async (Persona persona, KindergartenContext db) =>
+        group.MapPost("/", async (PersonaCreateDto dto, KindergartenContext db,IMapper mapper) =>
         {
+            var persona = mapper.Map<Persona>(dto);
             db.Personas.Add(persona);
             await db.SaveChangesAsync();
-            return Results.Created($"/api/personas/{persona.Cedula}", persona);
+
+            var readDto = mapper.Map<PersonaReadDto>(persona);
+            return Results.Created($"/api/personas/{persona.Cedula}", readDto);
         });
 
-        group.MapPut("/{cedula}", async (string cedula, Persona updatedPersona, KindergartenContext db) =>
+        group.MapPut("/{cedula}", async (string cedula, PersonaUpdateDto dto, KindergartenContext db, IMapper mapper) =>
         {
             var persona = await db.Personas.FindAsync(cedula);
             if (persona is null)
-            {
                 return Results.NotFound();
-            }
 
-            persona.Nombre = updatedPersona.Nombre;
-            persona.Telefono = updatedPersona.Telefono;
-            persona.Direccion = updatedPersona.Direccion;
-            persona.CuentaCorriente = updatedPersona.CuentaCorriente;
-
+            mapper.Map(dto, persona);
             await db.SaveChangesAsync();
             return Results.NoContent();
 
@@ -62,15 +68,11 @@ namespace KindergartenAPI.Routes
         {
             var persona = await db.Personas.FindAsync(cedula);
             if (persona is null)
-            {
                 return Results.NotFound();
-            }
-
+            
             db.Personas.Remove(persona);
             await db.SaveChangesAsync();
             return Results.NoContent();
-
-
         });
 
         return app;
