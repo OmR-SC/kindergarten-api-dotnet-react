@@ -22,6 +22,8 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddAutoMapper(typeof(Program).Assembly); // Registrando AutoMapper
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

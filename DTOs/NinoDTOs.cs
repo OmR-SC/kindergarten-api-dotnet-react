@@ -2,7 +2,7 @@ namespace KindergartenAPI.DTOs.Ninos;
 
 using KindergartenAPI.DTOs.Personas;
 
-public class NinoCreateDTO
+public class NinoCreateDto
 {
     public string Nombre { get; set; } = null!;
     public DateTime FechaNacimiento { get; set; }
