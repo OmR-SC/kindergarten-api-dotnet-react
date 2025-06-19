@@ -2,6 +2,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using KindergartenAPI.Data;
 using KindergartenAPI.Routes;
+using KindergartenAPI.Validators;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -28,8 +29,10 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddAutoMapper(typeof(Program).Assembly); // Registrando AutoMapper
 
 // Agregando FluentValidation
-builder.Services.AddFluentValidationAutoValidation()
-.AddValidatorsFromAssemblyContaining<Program>();
+builder.Services
+    .AddFluentValidationAutoValidation()
+    .AddFluentValidationClientsideAdapters()
+    .AddValidatorsFromAssemblyContaining<Program>();
 
 var app = builder.Build();
 

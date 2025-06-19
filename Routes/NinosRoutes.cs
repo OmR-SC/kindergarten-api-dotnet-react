@@ -1,4 +1,5 @@
 using AutoMapper;
+using FluentValidation;
 using KindergartenAPI.Data;
 using KindergartenAPI.DTOs.Ninos;
 using KindergartenAPI.Models;
@@ -46,8 +47,21 @@ namespace KindergartenAPI.Routes
                     
             });
 
-            group.MapPost("/", async (NinoCreateDto dto, KindergartenContext db,IMapper mapper) =>
+            group.MapPost("/", async (NinoCreateDto dto,  IValidator<NinoCreateDto> validator,KindergartenContext db,IMapper mapper) =>
             {
+                var validationResult = await validator.ValidateAsync(dto);
+
+                if (!validationResult.IsValid)
+                {
+                    var errors = validationResult.Errors
+                        .GroupBy(e => e.PropertyName)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.Select(e => e.ErrorMessage).ToArray()
+                        );
+                    return Results.ValidationProblem(errors);
+                }
+                
                 var nino = mapper.Map<Nino>(dto);
                 db.Ninos.Add(nino);
 
@@ -58,8 +72,21 @@ namespace KindergartenAPI.Routes
             
             });
 
-            group.MapPut("/{matricula:int}", async (int matricula, NinoUpdateDto dto, KindergartenContext db, IMapper mapper) =>
+            group.MapPut("/{matricula:int}", async (int matricula, NinoUpdateDto dto, IValidator<NinoUpdateDto> validator, KindergartenContext db, IMapper mapper) =>
             {
+
+                var validationResult = await validator.ValidateAsync(dto);
+
+                if (!validationResult.IsValid)
+                {
+                    var errors = validationResult.Errors
+                        .GroupBy(e => e.PropertyName)
+                        .ToDictionary(
+                            g => g.Key,
+                            g => g.Select(e => e.ErrorMessage).ToArray()
+                        );
+                    return Results.ValidationProblem(errors);
+                }
 
                 var existingNino = await db.Ninos.FindAsync(matricula);
                 if (existingNino is null)
