@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using AutoMapper;
 using KindergartenAPI.DTOs.Personas;
+using FluentValidation;
 
 
 
@@ -42,8 +43,21 @@ namespace KindergartenAPI.Routes
             return Results.Ok(dto);
         });
 
-        group.MapPost("/", async (PersonaCreateDto dto, KindergartenContext db,IMapper mapper) =>
+        group.MapPost("/", async (PersonaCreateDto dto, IValidator<PersonaCreateDto> validator, KindergartenContext db,IMapper mapper) =>
         {
+
+            var validationResult  = await validator.ValidateAsync(dto);
+            if (!validationResult .IsValid)
+            {
+                var errors = validationResult.Errors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Results.ValidationProblem(errors);
+            }
+
             var persona = mapper.Map<Persona>(dto);
             db.Personas.Add(persona);
             await db.SaveChangesAsync();
@@ -52,8 +66,21 @@ namespace KindergartenAPI.Routes
             return Results.Created($"/api/personas/{persona.Cedula}", readDto);
         });
 
-        group.MapPut("/{cedula}", async (string cedula, PersonaUpdateDto dto, KindergartenContext db, IMapper mapper) =>
+        group.MapPut("/{cedula}", async (string cedula, PersonaUpdateDto dto, IValidator<PersonaUpdateDto> validator, KindergartenContext db, IMapper mapper) =>
         {
+
+            var validationResult = await validator.ValidateAsync(dto);
+            if (!validationResult.IsValid)
+            {
+                var errors = validationResult.Errors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Results.ValidationProblem(errors);
+            }
+
             var persona = await db.Personas.FindAsync(cedula);
             if (persona is null)
                 return Results.NotFound();
