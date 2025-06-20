@@ -13,11 +13,18 @@ namespace KindergartenAPI.Validators
 
             RuleFor(n => n.FechaNacimiento)
                 .NotEmpty().WithMessage("La fecha de nacimiento es obligatoria.")
-                .LessThan(DateTime.Now).WithMessage("La fecha de nacimiento debe ser anterior a la fecha actual.");
+                .Must(fecha => fecha.ToDateTime(TimeOnly.MinValue) < DateTime.Now)
+                .WithMessage("La fecha de nacimiento debe ser anterior a la fecha actual.");
+
+            RuleFor(x => x.FechaNacimiento)
+                .LessThan(x => x.FechaIngreso)
+                .WithMessage("La fecha de nacimiento debe ser anterior a la fecha de ingreso.")
+                .When(x => x.FechaNacimiento.ToDateTime(TimeOnly.MinValue) < DateTime.Now); // only if nacimiento is valid when compare to fecha actual
 
             RuleFor(n => n.FechaIngreso)
                 .NotEmpty().WithMessage("La fecha de ingreso es obligatoria.")
-                .GreaterThanOrEqualTo(n => n.FechaNacimiento).WithMessage("La fecha de ingreso debe ser igual o posterior a la fecha de nacimiento.");
+                .Must((nino, fechaIngreso) => fechaIngreso >= nino.FechaNacimiento)
+                .WithMessage("La fecha de ingreso debe ser igual o posterior a la fecha de nacimiento.");
 
             RuleFor(n => n.CedulaPagador)
                 .NotEmpty().WithMessage("La cédula del pagador es obligatoria.");
