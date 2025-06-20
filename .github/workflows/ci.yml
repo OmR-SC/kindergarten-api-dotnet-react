@@ -1,0 +1,22 @@
+- name: Setup .NET SDK
+  uses: actions/setup-dotnet@v3
+  with:
+    dotnet-version: ${{ matrix.dotnet-version }}
+
+- name: Restore dependencies
+  run: dotnet restore backend/KindergartenAPI.sln
+
+- name: Build
+  run: dotnet build backend/KindergartenAPI.sln --no-restore --configuration Release
+
+- name: Run Unit and Integration Tests
+  run: dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj --no-build --configuration Release --verbosity normal
+
+- name: Report test results
+  if: ${{ always() }}
+  uses: dorny/test-reporter@v1
+  with:
+    name: Dotnet Tests
+    path: backend/KindergartenAPI.Tests/TestResults
+    reporter: 'dotnet'
+    fail-on-error: false
