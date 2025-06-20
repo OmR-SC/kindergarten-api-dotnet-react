@@ -1,3 +1,6 @@
+# ========================
+# BACKEND (ASP.NET Core)
+# ========================
 
 # Archivos de configuración
 appsettings.Development.json
@@ -29,8 +32,8 @@ obj/
 
 # Paquetes
 *.nupkg
-packages/
 *.snupkg
+packages/
 
 # Configuración local de dotnet-ef
 *.dotnet-tools.json
@@ -48,3 +51,36 @@ packages/
 publish/
 out/
 
+# ========================
+# FRONTEND (React + Vite)
+# ========================
+
+# Node modules
+frontend/node_modules/
+
+# Builds
+frontend/dist/
+frontend/.vite/
+
+# Archivos de entorno
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.production
+
+# IDEs y editores
+frontend/.vscode/
+
+# Logs y otros temporales
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# ========================
+# GENERAL
+# ========================
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
