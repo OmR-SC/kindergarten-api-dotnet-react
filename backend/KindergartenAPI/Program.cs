@@ -11,7 +11,18 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Registrando EF Core con SQL Server
 builder.Services.AddDbContext<KindergartenContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    if (builder.Environment.IsEnvironment("Test"))
+    {
+        // Usar InMemory para tests
+        options.UseInMemoryDatabase("TestDb");
+    }
+    else
+    {
+        // SQL Server en los demás entornos
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+});
 
 // Agregando Swagger/OpenAPI para documentación
 builder.Services.AddEndpointsApiExplorer();
@@ -51,3 +62,7 @@ app.MapNinosRoutes();
 app.MapPersonaRoutes();
 
 app.Run();
+
+
+// Permite que WebApplicationFactory<Program> nos vea:
+public partial class Program { }
