@@ -1,22 +1,52 @@
-- name: Setup .NET SDK
-  uses: actions/setup-dotnet@v3
-  with:
-    dotnet-version: ${{ matrix.dotnet-version }}
+name: CI
 
-- name: Restore dependencies
-  run: dotnet restore backend/KindergartenAPI.sln
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-- name: Build
-  run: dotnet build backend/KindergartenAPI.sln --no-restore --configuration Release
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
 
-- name: Run Unit and Integration Tests
-  run: dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj --no-build --configuration Release --verbosity normal
+    strategy:
+      matrix:
+        dotnet-version: ['9.0']
 
-- name: Report test results
-  if: ${{ always() }}
-  uses: dorny/test-reporter@v1
-  with:
-    name: Dotnet Tests
-    path: backend/KindergartenAPI.Tests/TestResults
-    reporter: 'dotnet'
-    fail-on-error: false
+    steps:
+      # 1) Traer el código
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2) Instalar .NET SDK
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      # 3) Restaurar paquetes NuGet
+      - name: Restore dependencies
+        run: dotnet restore backend/KindergartenAPI.sln
+
+      # 4) Compilar en Release
+      - name: Build
+        run: dotnet build backend/KindergartenAPI.sln --no-restore --configuration Release
+
+      # 5) Ejecutar tests y generar .trx
+      - name: Run Unit and Integration Tests
+        run: dotnet test \
+          backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj \
+          --no-build \
+          --configuration Release \
+          --logger "trx;LogFileName=test_results.trx"
+
+      # 6) Publicar resultados siempre, aunque fallen
+      - name: Report test results
+        if: ${{ always() }}
+        uses: dorny/test-reporter@v1
+        with:
+          name: Dotnet Tests
+          path: backend/KindergartenAPI.Tests/TestResults
+          reporter: 'dotnet'
+          fail-on-error: false
