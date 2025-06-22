@@ -1,16 +1,15 @@
-import { _posts } from 'src/_mock';
 import { CONFIG } from 'src/config-global';
 
-import { BlogView } from 'src/sections/blog/view';
+import { NotFoundView } from 'src/sections/error';
 
 // ----------------------------------------------------------------------
 
 export default function Page() {
   return (
     <>
-      <title>{`Blog - ${CONFIG.appName}`}</title>
+      <title>{`404 page not found! | Error - ${CONFIG.appName}`}</title>
 
-      <BlogView posts={_posts} />
+      <NotFoundView />
     </>
   );
 }
