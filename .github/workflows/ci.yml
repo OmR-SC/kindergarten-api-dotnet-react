@@ -1,4 +1,4 @@
-name: .NET CI/CD
+name: .NET CI
 
 on:
   push:
@@ -9,114 +9,53 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
+    strategy:
+      matrix:
+        dotnet-version: ['9.0.x']
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
+
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
-          
-      - name: Cache dependencies
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
-            
-      - name: Restore dependencies
-        run: dotnet restore KindergartenAPI.sln
-        
-      - name: Build solution
-        run: dotnet build KindergartenAPI.sln --no-restore --configuration Release
-        
-      - name: Run tests with coverage
+
+      - name: Restore & Build solution
         run: |
-          dotnet test KindergartenAPI.sln \
+          dotnet restore KindergartenAPI.sln
+          dotnet build    KindergartenAPI.sln --no-restore --configuration Release
+
+      - name: Run tests (unit & integration)
+        run: |
+          mkdir -p backend/KindergartenAPI.Tests/TestResults
+          dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj \
             --no-build \
             --configuration Release \
-            --logger "trx;LogFileName=TestResults.trx" \
-            --logger "console;verbosity=detailed" \
-            --collect:"XPlat Code Coverage" \
-            --results-directory ./TestResults \
-            --verbosity normal
-        
-      - name: List test result files (Debug)
-        run: |
-          echo "Listing contents of root directory:"
-          ls -la ./
-          echo "Listing contents of backend directory:"
-          ls -la ./backend/
-          echo "Looking for TestResults directories:"
-          find . -name "TestResults" -type d
-          echo "Showing TestResults directory contents:"
-          if [ -d "./TestResults" ]; then
-            ls -la ./TestResults/
-            find ./TestResults -type f -name "*.trx"
-            find ./TestResults -type f -name "*.xml"
-          fi
-          echo "Looking for .trx files everywhere:"
-          find . -name "*.trx" -type f
-          echo "Looking for coverage files:"
-          find . -name "coverage.cobertura.xml" -type f
-          find . -name "*.xml" -type f | grep -i coverage
-        
-      - name: Publish test results
-        uses: dorny/test-reporter@v1
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory backend/KindergartenAPI.Tests/TestResults
+
+      - name: Publish Test Results
         if: always()
+        uses: dorny/test-reporter@v1
         with:
-          name: '.NET Test Results'
-          path: |
-            ./TestResults/**/*.trx
-            ./**/*.trx
+          name: '.NET Tests'
+          path: backend/KindergartenAPI.Tests/TestResults/*.trx
           reporter: dotnet-trx
           fail-on-error: false
-          
-      - name: Upload test results artifacts
-        uses: actions/upload-artifact@v4
+
+      - name: Upload test-results artifact
         if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: |
-            ./TestResults/**/*
-          retention-days: 30
-          
-      - name: Generate coverage report
-        if: always()
-        run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          # Buscar archivos de cobertura en diferentes ubicaciones posibles
-          COVERAGE_FILES=$(find ./TestResults -name "coverage.cobertura.xml" -o -name "*.xml" | grep -i coverage | head -1)
-          if [ -n "$COVERAGE_FILES" ]; then
-            echo "Found coverage files: $COVERAGE_FILES"
-            reportgenerator \
-              -reports:"$COVERAGE_FILES" \
-              -targetdir:"./TestResults/coverage" \
-              -reporttypes:"Html;Cobertura" \
-              -verbosity:Info
-          else
-            echo "No coverage files found"
-            # Buscar cualquier archivo XML en TestResults
-            find ./TestResults -name "*.xml" -type f
-          fi
-        continue-on-error: true
-        
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: ./TestResults/coverage/
-          retention-days: 30
-          
-      - name: Comment coverage on PR
-        if: github.event_name == 'pull_request' && hashFiles('./TestResults/coverage/Cobertura.xml') != ''
-        uses: 5monkeys/cobertura-action@master
-        with:
-          path: ./TestResults/coverage/Cobertura.xml
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          minimum_coverage: 75
-        continue-on-error: true
+          path: backend/KindergartenAPI.Tests/TestResults/*.trx
