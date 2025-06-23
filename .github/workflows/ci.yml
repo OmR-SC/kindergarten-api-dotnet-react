@@ -56,15 +56,13 @@ jobs:
           if [ -d "./TestResults" ]; then
             ls -la ./TestResults/
             find ./TestResults -type f -name "*.trx"
-          fi
-          if [ -d "./backend/TestResults" ]; then
-            ls -la ./backend/TestResults/
-            find ./backend/TestResults -type f -name "*.trx"
+            find ./TestResults -type f -name "*.xml"
           fi
           echo "Looking for .trx files everywhere:"
           find . -name "*.trx" -type f
           echo "Looking for coverage files:"
           find . -name "coverage.cobertura.xml" -type f
+          find . -name "*.xml" -type f | grep -i coverage
         
       - name: Publish test results
         uses: dorny/test-reporter@v1
@@ -84,18 +82,26 @@ jobs:
           name: test-results
           path: |
             ./TestResults/**/*
-            ./**/TestResults/**/*
           retention-days: 30
           
       - name: Generate coverage report
         if: always()
         run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
-          reportgenerator \
-            -reports:"./TestResults/**/coverage.cobertura.xml" \
-            -targetdir:"./TestResults/coverage" \
-            -reporttypes:"Html;Cobertura" \
-            -verbosity:Info
+          # Buscar archivos de cobertura en diferentes ubicaciones posibles
+          COVERAGE_FILES=$(find ./TestResults -name "coverage.cobertura.xml" -o -name "*.xml" | grep -i coverage | head -1)
+          if [ -n "$COVERAGE_FILES" ]; then
+            echo "Found coverage files: $COVERAGE_FILES"
+            reportgenerator \
+              -reports:"$COVERAGE_FILES" \
+              -targetdir:"./TestResults/coverage" \
+              -reporttypes:"Html;Cobertura" \
+              -verbosity:Info
+          else
+            echo "No coverage files found"
+            # Buscar cualquier archivo XML en TestResults
+            find ./TestResults -name "*.xml" -type f
+          fi
         continue-on-error: true
         
       - name: Upload coverage reports
@@ -107,7 +113,7 @@ jobs:
           retention-days: 30
           
       - name: Comment coverage on PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && hashFiles('./TestResults/coverage/Cobertura.xml') != ''
         uses: 5monkeys/cobertura-action@master
         with:
           path: ./TestResults/coverage/Cobertura.xml
