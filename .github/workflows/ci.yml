@@ -38,29 +38,42 @@ jobs:
           dotnet test KindergartenAPI.sln \
             --no-build \
             --configuration Release \
-            --logger "trx" \
+            --logger "trx;LogFileName=TestResults.trx" \
             --logger "console;verbosity=detailed" \
             --collect:"XPlat Code Coverage" \
             --results-directory ./TestResults \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            --verbosity normal
         
       - name: List test result files (Debug)
         run: |
           echo "Listing contents of root directory:"
           ls -la ./
+          echo "Listing contents of backend directory:"
+          ls -la ./backend/
           echo "Looking for TestResults directories:"
           find . -name "TestResults" -type d
-          echo "Looking for .trx files:"
+          echo "Showing TestResults directory contents:"
+          if [ -d "./TestResults" ]; then
+            ls -la ./TestResults/
+            find ./TestResults -type f -name "*.trx"
+          fi
+          if [ -d "./backend/TestResults" ]; then
+            ls -la ./backend/TestResults/
+            find ./backend/TestResults -type f -name "*.trx"
+          fi
+          echo "Looking for .trx files everywhere:"
           find . -name "*.trx" -type f
           echo "Looking for coverage files:"
-          find . -name "*.xml" -type f
+          find . -name "coverage.cobertura.xml" -type f
         
       - name: Publish test results
         uses: dorny/test-reporter@v1
         if: always()
         with:
           name: '.NET Test Results'
-          path: './TestResults/*.trx'
+          path: |
+            ./TestResults/**/*.trx
+            ./**/*.trx
           reporter: dotnet-trx
           fail-on-error: false
           
@@ -79,9 +92,10 @@ jobs:
         run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator \
-            -reports:"./TestResults/**/coverage.opencover.xml" \
+            -reports:"./TestResults/**/coverage.cobertura.xml" \
             -targetdir:"./TestResults/coverage" \
-            -reporttypes:"Html;Cobertura"
+            -reporttypes:"Html;Cobertura" \
+            -verbosity:Info
         continue-on-error: true
         
       - name: Upload coverage reports
