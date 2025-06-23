@@ -1,22 +1,46 @@
-- name: Setup .NET SDK
-  uses: actions/setup-dotnet@v3
-  with:
-    dotnet-version: ${{ matrix.dotnet-version }}
+name: .NET CI
 
-- name: Restore dependencies
-  run: dotnet restore backend/KindergartenAPI.sln
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-- name: Build
-  run: dotnet build backend/KindergartenAPI.sln --no-restore --configuration Release
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet-version: ['9.0.x']
 
-- name: Run Unit and Integration Tests
-  run: dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj --no-build --configuration Release --verbosity normal
+    steps:
+      - uses: actions/checkout@v3
 
-- name: Report test results
-  if: ${{ always() }}
-  uses: dorny/test-reporter@v1
-  with:
-    name: Dotnet Tests
-    path: backend/KindergartenAPI.Tests/TestResults
-    reporter: 'dotnet'
-    fail-on-error: false
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Restore dependencies
+        run: dotnet restore backend/KindergartenAPI.sln
+
+      - name: Build
+        run: dotnet build backend/KindergartenAPI.sln --no-restore --configuration Release
+
+      - name: Run Unit and Integration Tests
+        run: |
+          mkdir -p backend/KindergartenAPI.Tests/TestResults
+          dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory backend/KindergartenAPI.Tests/TestResults
+
+      - name: Report test results
+        if: ${{ always() }}
+        uses: dorny/test-reporter@v1
+        with:
+          name: Dotnet Tests
+          path: backend/KindergartenAPI.Tests/TestResults/*.trx
+          reporter: dotnet-trx
+          fail-on-error: false
