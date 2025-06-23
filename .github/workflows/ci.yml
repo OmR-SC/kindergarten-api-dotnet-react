@@ -29,11 +29,15 @@ jobs:
 
       - name: Run Unit and Integration Tests
         run: |
+          # Creamos la carpeta donde van a caer los TRX
           mkdir -p backend/KindergartenAPI.Tests/TestResults
+
+          # Ejecutamos los tests, generando un .trx en esa carpeta
           dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj \
             --no-build \
             --configuration Release \
-            --logger "trx;LogFileName=backend/KindergartenAPI.Tests/TestResults/test-results.trx"
+            --logger trx \
+            --results-directory backend/KindergartenAPI.Tests/TestResults
 
       - name: Report test results
         if: ${{ always() }}
