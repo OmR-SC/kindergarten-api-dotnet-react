@@ -8,6 +8,20 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Definir el nombre de la política CORS
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
+// Configurar CORS para permitir el frontend en localhost:3039 (puerto Vite)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3039")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
 
 // Registrando EF Core con SQL Server
 builder.Services.AddDbContext<KindergartenContext>(options =>
@@ -58,11 +72,16 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseCors(MyAllowSpecificOrigins);
+
 app.MapNinosRoutes();
 app.MapPersonaRoutes();
 
 app.Run();
 
+var port = Environment.GetEnvironmentVariable("ASPNETCORE_PORT") ?? "5214";
+app.Urls.Clear();
+app.Urls.Add($"http://*:{port}");
 
 // Permite que WebApplicationFactory<Program> nos vea:
 public partial class Program { }
