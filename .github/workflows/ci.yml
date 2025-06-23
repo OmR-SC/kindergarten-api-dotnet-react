@@ -14,33 +14,33 @@ jobs:
         dotnet-version: ['9.0.x']
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: ${{ matrix.dotnet-version }}
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
 
-    - name: Restore dependencies
-      run: dotnet restore backend/KindergartenAPI.sln
+      - name: Restore dependencies
+        run: dotnet restore backend/KindergartenAPI.sln
 
-    - name: Build
-      run: dotnet build backend/KindergartenAPI.sln --no-restore --configuration Release
+      - name: Build
+        run: dotnet build backend/KindergartenAPI.sln --no-restore --configuration Release
 
-    - name: Run Unit and Integration Tests
-      run: |
-        mkdir -p backend/KindergartenAPI.Tests/TestResults
-        dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj \
-          --no-build \
-          --configuration Release \
-          --logger "trx;LogFileName=TestResults/results.trx" \
-          --results-directory backend/KindergartenAPI.Tests/TestResults
+      - name: Run Unit and Integration Tests
+        run: |
+          mkdir -p backend/KindergartenAPI.Tests/TestResults
+          dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory backend/KindergartenAPI.Tests/TestResults
 
-    - name: Report test results
-      if: ${{ always() }}
-      uses: dorny/test-reporter@v1
-      with:
-        name: Dotnet Tests
-        path: backend/KindergartenAPI.Tests/TestResults/*.trx
-        reporter: 'dotnet'
-        fail-on-error: false
+      - name: Report test results
+        if: ${{ always() }}
+        uses: dorny/test-reporter@v1
+        with:
+          name: Dotnet Tests
+          path: backend/KindergartenAPI.Tests/TestResults/*.trx
+          reporter: dotnet-trx
+          fail-on-error: false
