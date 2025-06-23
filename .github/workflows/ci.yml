@@ -27,19 +27,20 @@ jobs:
       - name: Build
         run: dotnet build KindergartenAPI.sln --no-restore --configuration Release
 
-      - name: Run Tests (generate TRX)
+      - name: Run Unit and Integration Tests
         run: |
-          dotnet test KindergartenAPI.Tests/KindergartenAPI.Tests.csproj \
+          mkdir -p backend/KindergartenAPI.Tests/TestResults
+          dotnet test backend/KindergartenAPI.Tests/KindergartenAPI.Tests.csproj \
             --no-build \
             --configuration Release \
-            --logger "trx;LogFileName=test-results.trx"
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory backend/KindergartenAPI.Tests/TestResults
 
       - name: Publish Test Results
-        if: always()
+        if: ${{ always() }}
         uses: dorny/test-reporter@v1
         with:
           name: Dotnet Tests
-          path: "KindergartenAPI.Tests/**/test-results.trx"
+          path: backend/KindergartenAPI.Tests/TestResults/*.trx
           reporter: dotnet-trx
-          fail-on-error: true
-          path-replace-backslashes: true
+          fail-on-error: false
