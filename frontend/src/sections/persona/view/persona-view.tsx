@@ -16,7 +16,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
-import { PersonaReadDto } from 'src/types/persona';
+import { PersonaCreateDto, PersonaReadDto } from 'src/types/persona';
 
 import { TableNoData } from '../table-no-data';
 import { TableEmptyRows } from '../table-empty-rows';
@@ -24,6 +24,7 @@ import { PersonaTableRow } from '../persona-table-row';
 import { PersonaTableHead } from '../persona-table-head';
 import { PersonaTableToolbar } from '../persona-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
+import { PersonaFormDialog } from '../components/PersonaFormDialog';
 
 import type { PersonaProps } from '../persona-table-row';
 
@@ -52,6 +53,15 @@ export function PersonaView() {
     };
     fecthData();
   }, []);
+
+  // Dialog para crear una nueva persona
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const handleCreated = (newPersona: PersonaCreateDto) => {
+    // recarga o inserta en la lista local
+    setPersonas((prev) => [newPersona, ...prev]);
+    table.onResetPage();
+  };
 
   function mapDtoToProps(pers: PersonaReadDto[]): PersonaProps[] {
     if (!Array.isArray(pers)) {
@@ -91,10 +101,17 @@ export function PersonaView() {
           variant="contained"
           color="inherit"
           startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={() => setOpenDialog(true)}
         >
           Add Persona
         </Button>
       </Box>
+
+      <PersonaFormDialog
+        open={openDialog}
+        onClose={() => setOpenDialog(false)}
+        onCreated={handleCreated}
+      />
 
       <Card>
         <PersonaTableToolbar
