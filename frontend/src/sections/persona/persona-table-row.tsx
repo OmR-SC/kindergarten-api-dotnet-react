@@ -16,13 +16,11 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 export type PersonaProps = {
-  id: string;
-  name: string;
-  role: string;
-  status: string;
-  company: string;
+  cedula: string;
+  nombre: string;
+  telefono: string;
+  direccion: string;
   avatarUrl: string;
-  isVerified: boolean;
 };
 
 type PersonaTableRowProps = {
@@ -57,26 +55,14 @@ export function PersonaTableRow({ row, selected, onSelectRow }: PersonaTableRowP
               alignItems: 'center',
             }}
           >
-            <Avatar alt={row.name} src={row.avatarUrl} />
-            {row.name}
+            <Avatar alt={row.nombre} src={row.avatarUrl} />
+            {row.nombre}
           </Box>
         </TableCell>
 
-        <TableCell>{row.company}</TableCell>
-
-        <TableCell>{row.role}</TableCell>
-
-        <TableCell align="center">
-          {row.isVerified ? (
-            <Iconify width={22} icon="solar:check-circle-bold" sx={{ color: 'success.main' }} />
-          ) : (
-            '-'
-          )}
-        </TableCell>
-
-        <TableCell>
-          <Label color={(row.status === 'banned' && 'error') || 'success'}>{row.status}</Label>
-        </TableCell>
+        <TableCell>{row.cedula}</TableCell>
+        <TableCell>{row.telefono}</TableCell>
+        <TableCell>{row.direccion}</TableCell>
 
         <TableCell align="right">
           <IconButton onClick={handleOpenPopover}>

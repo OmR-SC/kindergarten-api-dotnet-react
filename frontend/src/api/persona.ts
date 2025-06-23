@@ -1,22 +1,15 @@
-import axios from 'axios';
-import type { PersonaReadDto, PersonaCreateDto, PersonaUpdateDto } from './types';
+import { api } from './axios';
 
-export const API_URL = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
-});
-
-export const api = axios.create({
-  baseURL: `${API_URL}/api/v1`,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import type { PersonaReadDto, PersonaCreateDto, PersonaUpdateDto } from '../types/persona';
 
 // ————— Personas —————
 
 // Listar todas
 export const getPersonas = (): Promise<PersonaReadDto[]> =>
-  api.get('/personas').then((res) => res.data);
+  api.get('/personas').then((res) => {
+    console.log('Data received from API:', res);
+    return res.data;
+  });
 
 // Obtener una por cédula
 export const getPersona = (cedula: string): Promise<PersonaReadDto> =>

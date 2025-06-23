@@ -1,4 +1,3 @@
-
 export interface PersonaReadDto {
   cedula: string;
   nombre: string;
