@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -10,10 +10,13 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
 import { _users } from 'src/_mock';
+import { getPersonas } from 'src/api/persona';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
+
+import { PersonaReadDto } from 'src/types/persona';
 
 import { TableNoData } from '../table-no-data';
 import { TableEmptyRows } from '../table-empty-rows';
@@ -31,8 +34,41 @@ export function PersonaView() {
 
   const [filterName, setFilterName] = useState('');
 
-  const dataFiltered: PersonaProps[] = applyFilter({
-    inputData: _users,
+  const [personas, setPersonas] = useState<PersonaReadDto[]>([]);
+
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fecthData = async () => {
+      setLoading(true);
+      try {
+        const data = await getPersonas();
+        setPersonas(data);
+      } catch (error) {
+        console.error('Error loading personas:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fecthData();
+  }, []);
+
+  function mapDtoToProps(pers: PersonaReadDto[]): PersonaProps[] {
+    if (!Array.isArray(pers)) {
+      console.warn('mapDtoToProps recibió datos no válidos:', pers);
+      return [];
+    }
+    return pers.map((p, index: number) => ({
+      nombre: p.nombre,
+      cedula: p.cedula,
+      direccion: p.direccion,
+      telefono: p.telefono,
+      avatarUrl: `/assets/images/avatar/avatar-${index + 1}.webp`, // o lógica para obtener la URL del avatar
+    }));
+  }
+
+  const dataFiltered = applyFilter({
+    inputData: mapDtoToProps(personas),
     comparator: getComparator(table.order, table.orderBy),
     filterName,
   });
@@ -86,11 +122,10 @@ export function PersonaView() {
                   )
                 }
                 headLabel={[
-                  { id: 'name', label: 'Name' },
-                  { id: 'company', label: 'Company' },
-                  { id: 'role', label: 'Role' },
-                  { id: 'isVerified', label: 'Verified', align: 'center' },
-                  { id: 'status', label: 'Status' },
+                  { id: 'nombre', label: 'Nombre' },
+                  { id: 'cedula', label: 'Cédula' },
+                  { id: 'telefono', label: 'Teléfono' },
+                  { id: 'direccion', label: 'Dirección' },
                   { id: '' },
                 ]}
               />
@@ -102,16 +137,16 @@ export function PersonaView() {
                   )
                   .map((row) => (
                     <PersonaTableRow
-                      key={row.id}
+                      key={row.cedula}
                       row={row}
-                      selected={table.selected.includes(row.id)}
-                      onSelectRow={() => table.onSelectRow(row.id)}
+                      selected={table.selected.includes(row.cedula)}
+                      onSelectRow={() => table.onSelectRow(row.cedula)}
                     />
                   ))}
 
                 <TableEmptyRows
                   height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, _users.length)}
+                  emptyRows={emptyRows(table.page, table.rowsPerPage, personas.length)}
                 />
 
                 {notFound && <TableNoData searchQuery={filterName} />}
@@ -123,7 +158,7 @@ export function PersonaView() {
         <TablePagination
           component="div"
           page={table.page}
-          count={_users.length}
+          count={personas.length}
           rowsPerPage={table.rowsPerPage}
           onPageChange={table.onChangePage}
           rowsPerPageOptions={[5, 10, 25]}
@@ -138,7 +173,7 @@ export function PersonaView() {
 
 export function useTable() {
   const [page, setPage] = useState(0);
-  const [orderBy, setOrderBy] = useState('name');
+  const [orderBy, setOrderBy] = useState('nombre');
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [selected, setSelected] = useState<string[]>([]);
   const [order, setOrder] = useState<'asc' | 'desc'>('asc');
