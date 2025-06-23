@@ -46,5 +46,5 @@ jobs:
         with:
           name: Dotnet Tests
           path: backend/KindergartenAPI.Tests/TestResults/**/*.trx
-          reporter: trx
+          reporter: dotnet-trx
           fail-on-error: false
