@@ -10,7 +10,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
 import { _users } from 'src/_mock';
-import { getPersonas } from 'src/api/persona';
+import { deletePersona, getPersonas } from 'src/api/persona';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
@@ -27,6 +27,7 @@ import { emptyRows, applyFilter, getComparator } from '../utils';
 import { PersonaFormDialog } from '../components/PersonaFormDialog';
 
 import type { PersonaProps } from '../persona-table-row';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
 // ----------------------------------------------------------------------
 
@@ -76,9 +77,22 @@ export function PersonaView() {
     handleCloseDialog();
   }
 
-  // function handleEdit(p: PersonaReadDto) {
-  //   setEditPersona(p);
-  // }
+  //Delete
+  const [personaToDelete, setPersonaToDelete] = useState<PersonaReadDto | null>(null);
+
+  const handleDeleteConfirm = async () => {
+    if (!personaToDelete) return;
+
+    try {
+      await deletePersona(personaToDelete.cedula);
+      setPersonas((prev) => prev.filter((p) => p.cedula !== personaToDelete.cedula));
+    } catch (err) {
+      console.error('Error deleting:', err);
+      alert('Error deleting the persona.');
+    } finally {
+      setPersonaToDelete(null);
+    }
+  };
 
   useEffect(() => {
     const fecthData = async () => {
@@ -118,105 +132,114 @@ export function PersonaView() {
   const notFound = !dataFiltered.length && !!filterName;
 
   return (
-    <DashboardContent>
-      <Box
-        sx={{
-          mb: 5,
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          Personas
-        </Typography>
-        <Button
-          variant="contained"
-          color="inherit"
-          startIcon={<Iconify icon="mingcute:add-line" />}
-          onClick={() => setOpenDialog(true)}
-        >
-          Add Persona
-        </Button>
-      </Box>
-
-      <PersonaFormDialog
-        open={openDialog}
-        initial={editPersona ?? undefined}
-        onClose={handleCloseDialog}
-        onCreated={editPersona ? handleUpdated : handleCreated}
-      />
-
-      <Card>
-        <PersonaTableToolbar
-          numSelected={table.selected.length}
-          filterName={filterName}
-          onFilterName={(event: React.ChangeEvent<HTMLInputElement>) => {
-            setFilterName(event.target.value);
-            table.onResetPage();
+    <>
+      <DashboardContent>
+        <Box
+          sx={{
+            mb: 5,
+            display: 'flex',
+            alignItems: 'center',
           }}
+        >
+          <Typography variant="h4" sx={{ flexGrow: 1 }}>
+            Personas
+          </Typography>
+          <Button
+            variant="contained"
+            color="inherit"
+            startIcon={<Iconify icon="mingcute:add-line" />}
+            onClick={handleOpenCreate}
+          >
+            Add Persona
+          </Button>
+        </Box>
+
+        <PersonaFormDialog
+          open={openDialog}
+          initial={editPersona ?? undefined}
+          onClose={handleCloseDialog}
+          onCreated={editPersona ? handleUpdated : handleCreated}
         />
 
-        <Scrollbar>
-          <TableContainer sx={{ overflow: 'unset' }}>
-            <Table sx={{ minWidth: 800 }}>
-              <PersonaTableHead
-                order={table.order}
-                orderBy={table.orderBy}
-                rowCount={_users.length}
-                numSelected={table.selected.length}
-                onSort={table.onSort}
-                onSelectAllRows={(checked) =>
-                  table.onSelectAllRows(
-                    checked,
-                    _users.map((user) => user.id)
-                  )
-                }
-                headLabel={[
-                  { id: 'nombre', label: 'Nombre' },
-                  { id: 'cedula', label: 'Cédula' },
-                  { id: 'telefono', label: 'Teléfono' },
-                  { id: 'direccion', label: 'Dirección' },
-                  { id: '' },
-                ]}
-              />
-              <TableBody>
-                {dataFiltered
-                  .slice(
-                    table.page * table.rowsPerPage,
-                    table.page * table.rowsPerPage + table.rowsPerPage
-                  )
-                  .map((row) => (
-                    <PersonaTableRow
-                      key={row.cedula}
-                      row={row}
-                      selected={table.selected.includes(row.cedula)}
-                      onSelectRow={() => table.onSelectRow(row.cedula)}
-                      onEdit={() => handleOpenEdit(row)}
-                    />
-                  ))}
+        <Card>
+          <PersonaTableToolbar
+            numSelected={table.selected.length}
+            filterName={filterName}
+            onFilterName={(event: React.ChangeEvent<HTMLInputElement>) => {
+              setFilterName(event.target.value);
+              table.onResetPage();
+            }}
+          />
 
-                <TableEmptyRows
-                  height={68}
-                  emptyRows={emptyRows(table.page, table.rowsPerPage, personas.length)}
+          <Scrollbar>
+            <TableContainer sx={{ overflow: 'unset' }}>
+              <Table sx={{ minWidth: 800 }}>
+                <PersonaTableHead
+                  order={table.order}
+                  orderBy={table.orderBy}
+                  rowCount={_users.length}
+                  numSelected={table.selected.length}
+                  onSort={table.onSort}
+                  onSelectAllRows={(checked) =>
+                    table.onSelectAllRows(
+                      checked,
+                      _users.map((user) => user.id)
+                    )
+                  }
+                  headLabel={[
+                    { id: 'nombre', label: 'Nombre' },
+                    { id: 'cedula', label: 'Cédula' },
+                    { id: 'telefono', label: 'Teléfono' },
+                    { id: 'direccion', label: 'Dirección' },
+                    { id: '' },
+                  ]}
                 />
+                <TableBody>
+                  {dataFiltered
+                    .slice(
+                      table.page * table.rowsPerPage,
+                      table.page * table.rowsPerPage + table.rowsPerPage
+                    )
+                    .map((row) => (
+                      <PersonaTableRow
+                        key={row.cedula}
+                        row={row}
+                        selected={table.selected.includes(row.cedula)}
+                        onSelectRow={() => table.onSelectRow(row.cedula)}
+                        onEdit={() => handleOpenEdit(row)}
+                        onDelete={(row) => setPersonaToDelete(row)}
+                      />
+                    ))}
 
-                {notFound && <TableNoData searchQuery={filterName} />}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Scrollbar>
+                  <TableEmptyRows
+                    height={68}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, personas.length)}
+                  />
 
-        <TablePagination
-          component="div"
-          page={table.page}
-          count={personas.length}
-          rowsPerPage={table.rowsPerPage}
-          onPageChange={table.onChangePage}
-          rowsPerPageOptions={[5, 10, 25]}
-          onRowsPerPageChange={table.onChangeRowsPerPage}
-        />
-      </Card>
-    </DashboardContent>
+                  {notFound && <TableNoData searchQuery={filterName} />}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Scrollbar>
+
+          <TablePagination
+            component="div"
+            page={table.page}
+            count={personas.length}
+            rowsPerPage={table.rowsPerPage}
+            onPageChange={table.onChangePage}
+            rowsPerPageOptions={[5, 10, 25]}
+            onRowsPerPageChange={table.onChangeRowsPerPage}
+          />
+        </Card>
+      </DashboardContent>
+      <ConfirmDialog
+        open={!!personaToDelete}
+        content={`Are you sure you want to delete ${personaToDelete?.nombre}?`}
+        onClose={() => setPersonaToDelete(null)}
+        onConfirm={handleDeleteConfirm}
+      />
+    </>
   );
 }
 
