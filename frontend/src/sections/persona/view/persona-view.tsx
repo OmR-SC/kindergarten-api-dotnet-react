@@ -4,14 +4,15 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import { Alert, Snackbar } from '@mui/material';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
 import { _users } from 'src/_mock';
-import { deletePersona, getPersonas } from 'src/api/persona';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { deletePersona, getPersonas } from 'src/api/persona';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -22,12 +23,12 @@ import { TableNoData } from '../table-no-data';
 import { TableEmptyRows } from '../table-empty-rows';
 import { PersonaTableRow } from '../persona-table-row';
 import { PersonaTableHead } from '../persona-table-head';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { PersonaTableToolbar } from '../persona-table-toolbar';
 import { emptyRows, applyFilter, getComparator } from '../utils';
 import { PersonaFormDialog } from '../components/PersonaFormDialog';
 
 import type { PersonaProps } from '../persona-table-row';
-import { ConfirmDialog } from '../components/ConfirmDialog';
 
 // ----------------------------------------------------------------------
 
@@ -39,6 +40,10 @@ export function PersonaView() {
   const [personas, setPersonas] = useState<PersonaReadDto[]>([]);
 
   const [loading, setLoading] = useState(true);
+
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   //Edit Persona
   const [editPersona, setEditPersona] = useState<PersonaReadDto | null>(null);
@@ -86,11 +91,16 @@ export function PersonaView() {
     try {
       await deletePersona(personaToDelete.cedula);
       setPersonas((prev) => prev.filter((p) => p.cedula !== personaToDelete.cedula));
+      setSnackbarMessage('Persona deleted successfully');
+      setSnackbarOpen(true);
     } catch (err) {
       console.error('Error deleting:', err);
       alert('Error deleting the persona.');
     } finally {
       setPersonaToDelete(null);
+      setTimeout(() => {
+        setSnackbarOpen(false);
+      }, 1800);
     }
   };
 
@@ -206,8 +216,8 @@ export function PersonaView() {
                         row={row}
                         selected={table.selected.includes(row.cedula)}
                         onSelectRow={() => table.onSelectRow(row.cedula)}
-                        onEdit={() => handleOpenEdit(row)}
-                        onDelete={(row) => setPersonaToDelete(row)}
+                        onEdit={(p) => handleOpenEdit(p)}
+                        onDelete={(p) => setPersonaToDelete(p)}
                       />
                     ))}
 
@@ -239,6 +249,16 @@ export function PersonaView() {
         onClose={() => setPersonaToDelete(null)}
         onConfirm={handleDeleteConfirm}
       />
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert severity="success" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 }
