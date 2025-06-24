@@ -39,6 +39,47 @@ export function PersonaView() {
 
   const [loading, setLoading] = useState(true);
 
+  //Edit Persona
+  const [editPersona, setEditPersona] = useState<PersonaReadDto | null>(null);
+
+  // Dialog para crear una nueva persona
+  const [openDialog, setOpenDialog] = useState(false);
+
+  // Abrir diálogo para crear (editPersona = null)
+  function handleOpenCreate() {
+    setEditPersona(null);
+    setOpenDialog(true);
+  }
+
+  // Abrir diálogo para editar (editPersona = persona a editar)
+  function handleOpenEdit(persona: PersonaReadDto) {
+    setEditPersona(persona);
+    setOpenDialog(true);
+  }
+
+  // Cerrar diálogo
+  function handleCloseDialog() {
+    setOpenDialog(false);
+    setEditPersona(null);
+  }
+
+  const handleCreated = (newPersona: PersonaCreateDto) => {
+    // recarga o inserta en la lista local
+    setPersonas((prev) => [newPersona, ...prev]);
+    table.onResetPage();
+    handleCloseDialog();
+  };
+
+  function handleUpdated(updatedPersona: PersonaReadDto) {
+    // refrescar lista o hacer map sobre personas para actualizar la fila
+    setPersonas((arr) => arr.map((p) => (p.cedula === updatedPersona.cedula ? updatedPersona : p)));
+    handleCloseDialog();
+  }
+
+  // function handleEdit(p: PersonaReadDto) {
+  //   setEditPersona(p);
+  // }
+
   useEffect(() => {
     const fecthData = async () => {
       setLoading(true);
@@ -53,15 +94,6 @@ export function PersonaView() {
     };
     fecthData();
   }, []);
-
-  // Dialog para crear una nueva persona
-  const [openDialog, setOpenDialog] = useState(false);
-
-  const handleCreated = (newPersona: PersonaCreateDto) => {
-    // recarga o inserta en la lista local
-    setPersonas((prev) => [newPersona, ...prev]);
-    table.onResetPage();
-  };
 
   function mapDtoToProps(pers: PersonaReadDto[]): PersonaProps[] {
     if (!Array.isArray(pers)) {
@@ -109,8 +141,9 @@ export function PersonaView() {
 
       <PersonaFormDialog
         open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        onCreated={handleCreated}
+        initial={editPersona ?? undefined}
+        onClose={handleCloseDialog}
+        onCreated={editPersona ? handleUpdated : handleCreated}
       />
 
       <Card>
@@ -158,6 +191,7 @@ export function PersonaView() {
                       row={row}
                       selected={table.selected.includes(row.cedula)}
                       onSelectRow={() => table.onSelectRow(row.cedula)}
+                      onEdit={() => handleOpenEdit(row)}
                     />
                   ))}
 
