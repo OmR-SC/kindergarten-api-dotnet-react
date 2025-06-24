@@ -1,7 +1,7 @@
-import type { PersonaCreateDto } from 'src/types/persona';
+import type { PersonaCreateDto, PersonaReadDto } from 'src/types/persona';
 
-import axios, { AxiosError } from 'axios';
-import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useEffect, useRef, useState } from 'react';
 
 import {
   Dialog,
@@ -15,19 +15,20 @@ import {
   Snackbar,
 } from '@mui/material';
 
-import { createPersona } from 'src/api/persona';
+import { createPersona, updatePersona } from 'src/api/persona';
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onCreated: (newPersona: any) => void;
+  initial?: PersonaReadDto;
 };
 
 type FormErrors = Partial<Record<keyof PersonaCreateDto, string>> & {
   __global?: string;
 };
 
-export function PersonaFormDialog({ open, onClose, onCreated }: Props) {
+export function PersonaFormDialog({ open, onClose, onCreated, initial }: Props) {
   const initialForm: PersonaCreateDto = { cedula: '', nombre: '', telefono: '', direccion: '' };
   const [form, setForm] = useState<PersonaCreateDto>({
     cedula: '',
@@ -42,12 +43,35 @@ export function PersonaFormDialog({ open, onClose, onCreated }: Props) {
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+
+  const isEditMode = !!initial;
+
+  // Refs para enfoque dinámico
+  const cedulaRef = useRef<HTMLInputElement>(null);
+  const nombreRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     // Reseteamos el formulario y errores al abrir el diálogo
-    if (!open) {
-      setErrors({});
-      setForm({ cedula: '', nombre: '', telefono: '', direccion: '' });
+    if (!open) return;
+
+    if (initial) {
+      setForm({
+        cedula: initial.cedula,
+        nombre: initial.nombre,
+        telefono: initial.telefono,
+        direccion: initial.direccion,
+      });
+
+      // Enfocar campo nombre al editar
+      setTimeout(() => nombreRef.current?.focus(), 100);
+    } else {
+      setForm(initialForm);
+
+      // Enfocar campo cédula al crear
+      setTimeout(() => cedulaRef.current?.focus(), 100);
     }
+    setErrors({});
   }, [open]);
 
   const handleChange =
@@ -63,17 +87,26 @@ export function PersonaFormDialog({ open, onClose, onCreated }: Props) {
   const handleSubmit = async () => {
     setSaving(true);
     try {
-      const created = await createPersona(form);
+      let result;
+
+      if (isEditMode && initial) {
+        await updatePersona(initial.cedula, form);
+        result = form;
+        setSnackbarMessage('Persona actualizada correctamente');
+      } else {
+        result = await createPersona(form);
+        setSnackbarMessage('Persona creada correctamente');
+      }
+
       setSnackbarOpen(true);
-      onCreated(created);
+      onCreated(result);
       // Cerrar diálogo tras pequeño delay para que se vea el snackbar
       setTimeout(() => {
         setSnackbarOpen(false);
         onClose();
       }, 1800);
-      onClose();
     } catch (error: any) {
-      console.error('Error creating persona:', error);
+      console.error('Error en submit:', error);
       if (axios.isAxiosError(error)) {
         const response = error.response;
 
@@ -124,7 +157,7 @@ export function PersonaFormDialog({ open, onClose, onCreated }: Props) {
         maxWidth="sm"
         disableRestoreFocus
       >
-        <DialogTitle>Crear nueva Persona</DialogTitle>
+        <DialogTitle>{isEditMode ? 'Editar Persona' : 'Crear nueva Persona'}</DialogTitle>
         <DialogContent>
           {/* Mensaje de error general si existe */}
           {errors.__global && (
@@ -133,53 +166,62 @@ export function PersonaFormDialog({ open, onClose, onCreated }: Props) {
             </Alert>
           )}
 
-          <Stack spacing={2} mt={1}>
-            <TextField
-              autoFocus
-              label="Cédula"
-              value={form.cedula}
-              onChange={handleChange('cedula')}
-              fullWidth
-              error={!!errors.cedula}
-              helperText={errors.cedula}
-            />
-            <TextField
-              label="Nombre"
-              value={form.nombre}
-              onChange={handleChange('nombre')}
-              fullWidth
-              error={!!errors.nombre}
-              helperText={errors.nombre}
-            />
-            <TextField
-              label="Teléfono"
-              value={form.telefono}
-              onChange={handleChange('telefono')}
-              fullWidth
-              error={!!errors.telefono}
-              helperText={errors.telefono}
-            />
-            <TextField
-              label="Dirección"
-              value={form.direccion}
-              onChange={handleChange('direccion')}
-              fullWidth
-              error={!!errors.direccion}
-              helperText={errors.direccion}
-            />
-          </Stack>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <Stack spacing={2} mt={1}>
+              <TextField
+                label="Cédula"
+                value={form.cedula}
+                onChange={handleChange('cedula')}
+                fullWidth
+                disabled={isEditMode} // Deshabilitar si es edición
+                error={!!errors.cedula}
+                helperText={errors.cedula}
+                inputRef={cedulaRef} // Enfocar al crear
+              />
+              <TextField
+                label="Nombre"
+                value={form.nombre}
+                onChange={handleChange('nombre')}
+                fullWidth
+                error={!!errors.nombre}
+                helperText={errors.nombre}
+                inputRef={nombreRef} // Enfocar al editar
+              />
+              <TextField
+                label="Teléfono"
+                value={form.telefono}
+                onChange={handleChange('telefono')}
+                fullWidth
+                error={!!errors.telefono}
+                helperText={errors.telefono}
+              />
+              <TextField
+                label="Dirección"
+                value={form.direccion}
+                onChange={handleChange('direccion')}
+                fullWidth
+                error={!!errors.direccion}
+                helperText={errors.direccion}
+              />
+            </Stack>
+
+            <DialogActions sx={{ pr: 3, pb: 2 }}>
+              <Button onClick={onClose} disabled={saving}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="contained" disabled={saving}>
+                {saving ? 'Guardando…' : isEditMode ? 'Guardar cambios' : 'Crear'}
+              </Button>
+            </DialogActions>
+          </form>
         </DialogContent>
-        <DialogActions sx={{ pr: 3, pb: 2 }}>
-          <Button onClick={onClose} disabled={saving}>
-            Cancelar
-          </Button>
-          <Button variant="contained" onClick={handleSubmit} disabled={saving}>
-            {saving ? 'Guardando…' : 'Crear'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
-      {/* Snackbar de éxito */}
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={2000}
@@ -187,7 +229,7 @@ export function PersonaFormDialog({ open, onClose, onCreated }: Props) {
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <Alert severity="success" sx={{ width: '100%' }}>
-          Persona creada correctamente
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </>

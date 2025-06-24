@@ -27,9 +27,10 @@ type PersonaTableRowProps = {
   row: PersonaProps;
   selected: boolean;
   onSelectRow: () => void;
+  onEdit: (persona: PersonaProps) => void;
 };
 
-export function PersonaTableRow({ row, selected, onSelectRow }: PersonaTableRowProps) {
+export function PersonaTableRow({ row, selected, onSelectRow, onEdit }: PersonaTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -94,7 +95,12 @@ export function PersonaTableRow({ row, selected, onSelectRow }: PersonaTableRowP
             },
           }}
         >
-          <MenuItem onClick={handleClosePopover}>
+          <MenuItem
+            onClick={() => {
+              handleClosePopover();
+              onEdit(row); // <— pasar row al handler de edición
+            }}
+          >
             <Iconify icon="solar:pen-bold" />
             Edit
           </MenuItem>
