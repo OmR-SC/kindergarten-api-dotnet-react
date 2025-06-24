@@ -28,9 +28,16 @@ type PersonaTableRowProps = {
   selected: boolean;
   onSelectRow: () => void;
   onEdit: (persona: PersonaProps) => void;
+  onDelete: (persona: PersonaProps) => void;
 };
 
-export function PersonaTableRow({ row, selected, onSelectRow, onEdit }: PersonaTableRowProps) {
+export function PersonaTableRow({
+  row,
+  selected,
+  onSelectRow,
+  onEdit,
+  onDelete,
+}: PersonaTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
@@ -66,7 +73,12 @@ export function PersonaTableRow({ row, selected, onSelectRow, onEdit }: PersonaT
         <TableCell>{row.direccion}</TableCell>
 
         <TableCell align="right">
-          <IconButton onClick={handleOpenPopover}>
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenPopover(e);
+            }}
+          >
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>
         </TableCell>
@@ -105,7 +117,13 @@ export function PersonaTableRow({ row, selected, onSelectRow, onEdit }: PersonaT
             Edit
           </MenuItem>
 
-          <MenuItem onClick={handleClosePopover} sx={{ color: 'error.main' }}>
+          <MenuItem
+            onClick={() => {
+              handleClosePopover();
+              onDelete(row);
+            }}
+            sx={{ color: 'error.main' }}
+          >
             <Iconify icon="solar:trash-bin-trash-bold" />
             Delete
           </MenuItem>
