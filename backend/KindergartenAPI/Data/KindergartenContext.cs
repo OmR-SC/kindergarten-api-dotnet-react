@@ -131,7 +131,7 @@ public partial class KindergartenContext : DbContext
 
             entity.HasIndex(e => e.CedulaPagador, "IX_Nino_CedulaPagador");
 
-            entity.Property(e => e.Matricula).ValueGeneratedNever();
+            entity.Property(e => e.Matricula).ValueGeneratedOnAdd();
             entity.Property(e => e.CedulaPagador)
                 .HasMaxLength(11)
                 .IsUnicode(false)
