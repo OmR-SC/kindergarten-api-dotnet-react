@@ -23,6 +23,12 @@ export const navData = [
     path: '/persona',
     icon: icon('ic-user'),
   },
+
+  {
+    title: 'Nino',
+    path: '/nino',
+    icon: icon('ic-user'),
+  },
   
   /*
   ,
