@@ -15,6 +15,7 @@ import { DashboardLayout } from 'src/layouts/dashboard';
 //export const DashboardPage = lazy(() => import('src/pages/dashboard'));
 //export const BlogPage = lazy(() => import('src/pages/blog'));
 export const PersonaPage = lazy(() => import('src/pages/persona'));
+export const NinoPage = lazy(() => import('src/pages/nino'));
 export const WelcomePage = lazy(() => import('src/pages/welcome'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
 //export const ProductsPage = lazy(() => import('src/pages/products'));
@@ -53,6 +54,7 @@ export const routesSection: RouteObject[] = [
       //{ index: true, element: <DashboardPage /> },
       { index: true, element: <WelcomePage /> },
       { path: 'persona', element: <PersonaPage /> },
+      { path: 'nino', element: <NinoPage /> },
     //  { path: 'products', element: <ProductsPage /> },
     //  { path: 'blog', element: <BlogPage /> },
     ],
