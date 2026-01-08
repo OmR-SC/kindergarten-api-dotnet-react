@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
-import { _users } from 'src/_mock';
+//import { _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { deletePersona, getPersonas } from 'src/api/persona';
 
@@ -119,20 +119,6 @@ export function PersonaView() {
     fecthData();
   }, []);
 
-  function mapDtoToProps(pers: PersonaReadDto[]): PersonaProps[] {
-    if (!Array.isArray(pers)) {
-      console.warn('mapDtoToProps recibió datos no válidos:', pers);
-      return [];
-    }
-    return pers.map((p, index: number) => ({
-      nombre: p.nombre,
-      cedula: p.cedula,
-      direccion: p.direccion,
-      telefono: p.telefono,
-      avatarUrl: `/assets/images/avatar/avatar-${index + 1}.webp`, // o lógica para obtener la URL del avatar
-    }));
-  }
-
   const dataFiltered = applyFilter({
     inputData: mapDtoToProps(personas),
     comparator: getComparator(table.order, table.orderBy),
@@ -187,13 +173,13 @@ export function PersonaView() {
                 <PersonaTableHead
                   order={table.order}
                   orderBy={table.orderBy}
-                  rowCount={_users.length}
+                  rowCount={personas.length}
                   numSelected={table.selected.length}
                   onSort={table.onSort}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
-                      _users.map((user) => user.id)
+                      personas.map((persona) => persona.cedula.toString())
                     )
                   }
                   headLabel={[
@@ -329,4 +315,18 @@ export function useTable() {
     onSelectAllRows,
     onChangeRowsPerPage,
   };
+}
+
+function mapDtoToProps(pers: PersonaReadDto[]): PersonaProps[] {
+  if (!Array.isArray(pers)) {
+    console.warn('mapDtoToProps recibió datos no válidos:', pers);
+    return [];
+  }
+  return pers.map((p, index: number) => ({
+    nombre: p.nombre,
+    cedula: p.cedula,
+    direccion: p.direccion,
+    telefono: p.telefono,
+    avatarUrl: `/assets/images/avatar/avatar-${index + 1}.webp`, // o lógica para obtener la URL del avatar
+  }));
 }
