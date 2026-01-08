@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
-import { _users } from 'src/_mock';
+//import { _users } from 'src/_mock';
 import { deleteNino, getNinos } from 'src/api/ninos';
 import { DashboardContent } from 'src/layouts/dashboard';
 
@@ -119,22 +119,7 @@ export function NinoView() {
     fecthData();
   }, []);
 
-  function mapDtoToProps(data: NinoReadDto[]): NinoProps[] {
-    if (!Array.isArray(data)) {
-      console.warn('mapDtoToProps recibió datos no válidos:', data);
-      return [];
-    }
-    return data.map((n, index: number) => ({
-      ...n,
-      /*
-      nombre: n.nombre,
-      fechaNacimiento: n.fechaNacimiento,
-      direccion: n.fechaIngreso,
-      telefono: n.cedulaPagador,
-      */
-      avatarUrl: `/assets/images/avatar/avatar-${index + 1}.webp`, // o lógica para obtener la URL del avatar
-    }));
-  }
+ 
 
   const dataFiltered = applyFilter({
     inputData: mapDtoToProps(ninos),
@@ -190,13 +175,13 @@ export function NinoView() {
                 <NinoTableHead
                   order={table.order}
                   orderBy={table.orderBy}
-                  rowCount={_users.length}
+                  rowCount={ninos.length}
                   numSelected={table.selected.length}
                   onSort={table.onSort}
                   onSelectAllRows={(checked) =>
                     table.onSelectAllRows(
                       checked,
-                      _users.map((user) => user.id)
+                      ninos.map((user) => user.matricula.toString())
                     )
                   }
                   headLabel={[
@@ -335,3 +320,21 @@ export function useTable() {
     onChangeRowsPerPage,
   };
 }
+
+
+ function mapDtoToProps(data: NinoReadDto[]): NinoProps[] {
+    if (!Array.isArray(data)) {
+      console.warn('mapDtoToProps recibió datos no válidos:', data);
+      return [];
+    }
+    return data.map((n, index: number) => ({
+      ...n,
+      /*
+      nombre: n.nombre,
+      fechaNacimiento: n.fechaNacimiento,
+      direccion: n.fechaIngreso,
+      telefono: n.cedulaPagador,
+      */
+      avatarUrl: `/assets/images/avatar/avatar-${index + 1}.webp`, // o lógica para obtener la URL del avatar
+    }));
+  }
