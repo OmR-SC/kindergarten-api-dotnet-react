@@ -22,8 +22,8 @@
     "tsc:dev": "yarn dev & yarn tsc:watch",
     "tsc:watch": "tsc --noEmit --watch",
     "tsc:print": "npx tsc --showConfig",
-    "test": "vitest",                 
-    "test:run": "vitest run",         
+    "test": "vitest",
+    "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "engines": {
@@ -68,7 +68,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unused-imports": "^4.1.4",
     "globals": "^16.0.0",
-    "jsdom": "^27.4.0",
+    "jsdom": "^22.1.0",
     "prettier": "^3.5.3",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.29.0",
