@@ -1,18 +1,18 @@
-import type { PersonaCreateDto, PersonaReadDto } from 'src/types/persona';
+import type { PersonaReadDto, PersonaCreateDto } from 'src/types/persona';
 
 import axios from 'axios';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 import {
+  Stack,
+  Alert,
   Dialog,
+  Button,
+  Snackbar,
+  TextField,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
-  TextField,
-  Stack,
-  Alert,
-  Snackbar,
 } from '@mui/material';
 
 import { createPersona, updatePersona } from 'src/api/persona';
@@ -86,6 +86,7 @@ export function PersonaFormDialog({ open, onClose, onCreated, initial }: Props) 
 
   const handleSubmit = async () => {
     setSaving(true);
+    setErrors({});
     try {
       let result;
 
@@ -120,14 +121,33 @@ export function PersonaFormDialog({ open, onClose, onCreated, initial }: Props) 
           const validationErrors = response.data.errors;
           const formattedErrors: FormErrors = {};
 
-          for (const key in validationErrors) {
-            // tomamos sólo el primer mensaje de cada campo
-            const lc = key.toLowerCase() as keyof PersonaCreateDto;
+          const formKeys = Object.keys(form);
 
-            if (lc in form) {
-              formattedErrors[lc] = validationErrors[key][0];
+          for (const serverKey in validationErrors) {
+            // Buscamos en tus claves locales cuál coincide ignorando mayúsculas
+            const matchingKey = formKeys.find(
+              (fk) => fk.toLowerCase() === serverKey.toLowerCase()
+            ) as keyof PersonaCreateDto | undefined;
+
+            if (matchingKey) {
+              formattedErrors[matchingKey] = validationErrors[serverKey][0];
             }
           }
+
+          if (Object.keys(formattedErrors).length > 0) {
+            setErrors(formattedErrors);
+          } else {
+            setErrors({ __global: 'Error de validación, verifique los datos.' });
+          }
+
+          // for (const key in validationErrors) {
+          //   // tomamos sólo el primer mensaje de cada campo
+          //   const lc = key.toLowerCase() as keyof PersonaCreateDto;
+
+          //   if (lc in form) {
+          //     formattedErrors[lc] = validationErrors[key][0];
+          //   }
+          // }
           setErrors(formattedErrors);
         } else {
           setErrors({ __global: 'Ha ocurrido un error inesperado.' });
