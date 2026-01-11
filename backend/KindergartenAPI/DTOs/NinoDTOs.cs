@@ -5,9 +5,9 @@ using KindergartenAPI.DTOs.Personas;
 public class NinoCreateDto
 {
     public string Nombre { get; set; } = null!;
-    public DateOnly FechaNacimiento { get; set; }
+    public DateOnly? FechaNacimiento { get; set; }
 
-    public DateOnly FechaIngreso { get; set; }
+    public DateOnly? FechaIngreso { get; set; }
 
     public string CedulaPagador { get; set; } = null!;
 }
@@ -25,8 +25,8 @@ public class NinoReadDto
     public class NinoUpdateDto
     {
         public string Nombre { get; set; } = null!;
-        public DateOnly FechaNacimiento { get; set; }
-        public DateOnly FechaIngreso { get; set; }
+        public DateOnly? FechaNacimiento { get; set; }
+        public DateOnly? FechaIngreso { get; set; }
         public DateOnly? FechaBaja { get; set; }
         public string CedulaPagador { get; set; } = null!;
     }

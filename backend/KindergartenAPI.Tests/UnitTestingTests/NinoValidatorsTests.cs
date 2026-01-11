@@ -41,7 +41,7 @@ namespace KindergartenAPI.Tests.UnitTesting
 
             var result = _validator.Validate(dto);
             result.IsValid.Should().BeFalse();
-            result.Errors.Should().ContainSingle(e => e.PropertyName == "FechaNacimiento");
+            result.Errors.Should().Contain(e => e.PropertyName == "FechaNacimiento");
         }
 
         [Fact]
