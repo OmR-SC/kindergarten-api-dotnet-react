@@ -16,7 +16,7 @@ namespace KindergartenAPI.Routes
             group.WithTags("Ninos");
 
             // GET /ninos
-            group.MapGet("/", async (KindergartenContext db,IMapper mapper) =>
+            group.MapGet("/", async (KindergartenContext db, IMapper mapper) =>
             {
 
                 var ninos = await db.Ninos
@@ -24,12 +24,12 @@ namespace KindergartenAPI.Routes
                    .Include(a => a.Ingredientes)
                    .Include(n => n.Asistencia)
                    .ToListAsync();
-                    
+
                 var dtos = mapper.Map<List<NinoReadDto>>(ninos);
                 return Results.Ok(dtos);
             });
             // GET /ninos/{id}
-            group.MapGet("/{matricula:int}", async (int matricula, KindergartenContext db,IMapper mapper) =>
+            group.MapGet("/{matricula:int}", async (int matricula, KindergartenContext db, IMapper mapper) =>
             {
 
                 var nino = await db.Ninos
@@ -44,10 +44,10 @@ namespace KindergartenAPI.Routes
                 return nino is not null
                     ? Results.Ok(mapper.Map<NinoReadDto>(nino))
                     : Results.NotFound();
-                    
+
             });
 
-            group.MapPost("/", async (NinoCreateDto dto,  IValidator<NinoCreateDto> validator,KindergartenContext db,IMapper mapper) =>
+            group.MapPost("/", async (NinoCreateDto dto, IValidator<NinoCreateDto> validator, KindergartenContext db, IMapper mapper) =>
             {
                 var validationResult = await validator.ValidateAsync(dto);
 
@@ -61,7 +61,20 @@ namespace KindergartenAPI.Routes
                         );
                     return Results.ValidationProblem(errors);
                 }
-                
+
+                var existePagador = await db.Personas.AnyAsync(p => p.Cedula == dto.CedulaPagador);
+
+                if (!existePagador)
+                {
+
+                    var errors = new Dictionary<string, string[]>
+        {
+            { "CedulaPagador", new[] { $"No existe la persona con cédula {dto.CedulaPagador}. Regístrela primero." } }
+        };
+
+                    return Results.ValidationProblem(errors);
+                }
+
                 var nino = mapper.Map<Nino>(dto);
                 db.Ninos.Add(nino);
 
@@ -69,7 +82,7 @@ namespace KindergartenAPI.Routes
 
                 var readDto = mapper.Map<NinoReadDto>(nino);
                 return Results.Created($"/api/v1/ninos/{nino.Matricula}", readDto);
-            
+
             });
 
             group.MapPut("/{matricula:int}", async (int matricula, NinoUpdateDto dto, IValidator<NinoUpdateDto> validator, KindergartenContext db, IMapper mapper) =>
@@ -90,9 +103,26 @@ namespace KindergartenAPI.Routes
 
                 var existingNino = await db.Ninos.FindAsync(matricula);
                 if (existingNino is null)
-                    return Results.NotFound();
-                
-                mapper.Map(dto, existingNino);                
+                {
+
+                    var errors = new Dictionary<string, string[]>
+                    {
+                        {"Matricula", new[]{$"No existe el nino con matricula {matricula}."} }
+                    };
+                    return Results.ValidationProblem(errors);
+                }
+
+                var existePagador = await db.Personas.AnyAsync(p => p.Cedula == dto.CedulaPagador);
+
+                if (!existePagador)
+                {
+                    var errors = new Dictionary<string, string[]>
+                    {
+                        {"CedulaPagador", new[]{$"No existe la persona con cédula {dto.CedulaPagador}. Regístrela primero."} }
+                    };
+                    return Results.ValidationProblem(errors);
+                }
+                mapper.Map(dto, existingNino);
                 await db.SaveChangesAsync();
                 return Results.NoContent();
             });
