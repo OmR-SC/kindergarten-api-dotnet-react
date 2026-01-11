@@ -16,11 +16,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
-  TextField,
-  Stack,
-  Alert,
-  Snackbar,
 } from '@mui/material';
 
 import { createNino, updateNino } from 'src/api/ninos';
@@ -110,15 +105,23 @@ export function NinoFormDialog({ open, onClose, onCreated, initial }: Props) {
 
   const handleSubmit = async () => {
     setSaving(true);
+    setErrors({});
     try {
+      const payload = {
+        ...form,
+        fechaNacimiento: form.fechaNacimiento === '' ? null : form.fechaNacimiento,
+        fechaIngreso: form.fechaIngreso === '' ? null : form.fechaIngreso,
+        fechaBaja: form.fechaBaja === '' ? null : form.fechaBaja,
+      };
+
       let result;
 
       if (isEditMode && initial) {
-        await updateNino(parseInt(initial.matricula), form);
-        result = form;
+        await updateNino(parseInt(initial.matricula), payload);
+        result = payload;
         setSnackbarMessage('Nino actualizado correctamente');
       } else {
-        result = await createNino(form);
+        result = await createNino(payload);
         setSnackbarMessage('Nino creado correctamente');
       }
 
@@ -130,7 +133,7 @@ export function NinoFormDialog({ open, onClose, onCreated, initial }: Props) {
         onClose();
       }, 1800);
     } catch (error: any) {
-      console.error('Error en submit:', error);
+            console.error('Error en submit:', error);
       if (axios.isAxiosError(error)) {
         const response = error.response;
 
@@ -140,18 +143,45 @@ export function NinoFormDialog({ open, onClose, onCreated, initial }: Props) {
           return;
         }
 
+        console.error('Error en submit:', response.data.errors);
+
         if (response.status === 400 && response.data.errors) {
           const validationErrors = response.data.errors;
           const formattedErrors: FormErrors = {};
 
-          for (const key in validationErrors) {
-            // tomamos sólo el primer mensaje de cada campo
-            const lc = key.toLowerCase() as keyof NinoReadDto;
+          // --- AQUÍ ESTÁ LA MAGIA CORREGIDA ---
+          // Obtenemos las claves reales de tu formulario (ej: ['nombre', 'cedulaPagador'...])
+          const formKeys = Object.keys(form);
 
-            if (lc in form) {
-              formattedErrors[lc] = validationErrors[key][0];
+          for (const serverKey in validationErrors) {
+            // Buscamos en tus claves locales cuál coincide ignorando mayúsculas
+            const matchingKey = formKeys.find(
+              (fk) => fk.toLowerCase() === serverKey.toLowerCase()
+            ) as keyof NinoReadDto | undefined;
+
+            if (matchingKey) {
+              // Asignamos el error a la clave CORRECTA del frontend (camelCase)
+              formattedErrors[matchingKey] = validationErrors[serverKey][0];
             }
           }
+
+          // Si después de mapear no encontramos errores específicos (ej: error de lógica global),
+          // mostramos un error genérico, si no, mostramos los errores de campo.
+          if (Object.keys(formattedErrors).length > 0) {
+            setErrors(formattedErrors);
+          } else {
+            // A veces el error viene en response.data.title o similar si no es de campos
+            setErrors({ __global: 'Error de validación, verifique los datos.' });
+          }
+
+          // for (const key in validationErrors) {
+          //   // tomamos sólo el primer mensaje de cada campo
+          //   const lc = key.toLowerCase() as keyof NinoReadDto;
+
+          //   if (lc in form) {
+          //     formattedErrors[lc] = validationErrors[key][0];
+          //   }
+          // }
           setErrors(formattedErrors);
         } else {
           setErrors({ __global: 'Ha ocurrido un error inesperado.' });
