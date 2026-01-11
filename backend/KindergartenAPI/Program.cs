@@ -17,7 +17,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
         policy =>
         {
-            policy.WithOrigins("http://localhost:3039")
+            policy.WithOrigins("http://localhost:3039", "http://localhost:3000", "http://localhost")
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -77,11 +77,32 @@ app.UseCors(MyAllowSpecificOrigins);
 app.MapNinosRoutes();
 app.MapPersonaRoutes();
 
+if (!builder.Environment.IsEnvironment("Test"))
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        try
+        {
+            var context = services.GetRequiredService<KindergartenContext>();
+
+            context.Database.EnsureCreated();
+
+            Console.WriteLine("--> Base de datos creada/verificada correctamente.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"--> Error creando la DB: {ex.Message}");
+        }
+    }
+}
+
+
 app.Run();
 
+/*
 var port = Environment.GetEnvironmentVariable("ASPNETCORE_PORT") ?? "5214";
 app.Urls.Clear();
 app.Urls.Add($"http://*:{port}");
-
-// Permite que WebApplicationFactory<Program> nos vea:
+*/
 public partial class Program { }
