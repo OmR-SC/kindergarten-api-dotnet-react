@@ -13,7 +13,7 @@ namespace KindergartenAPI.Validators
 
             RuleFor(x => x.FechaNacimiento)
                 .NotNull().WithMessage("La fecha de nacimiento es obligatoria.")
-                .LessThan(DateOnly.FromDateTime(DateTime.Today))
+                //.LessThan(DateOnly.FromDateTime(DateTime.Today))
                 .Must(fecha =>
                 {
                     if (!fecha.HasValue) return false;
