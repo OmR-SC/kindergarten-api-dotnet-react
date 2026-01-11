@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import type { NinoReadDto } from 'src/types/ninos';
+
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,13 +13,11 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
 //import { _users } from 'src/_mock';
-import { deleteNino, getNinos } from 'src/api/ninos';
+import { getNinos, deleteNino } from 'src/api/ninos';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-
-import { NinoCreateDto, NinoReadDto } from 'src/types/ninos';
 
 import { TableNoData } from '../table-no-data';
 import { NinoTableRow } from '../nino-table-row';
@@ -118,8 +118,6 @@ export function NinoView() {
     };
     fecthData();
   }, []);
-
- 
 
   const dataFiltered = applyFilter({
     inputData: mapDtoToProps(ninos),
@@ -321,20 +319,19 @@ export function useTable() {
   };
 }
 
-
- function mapDtoToProps(data: NinoReadDto[]): NinoProps[] {
-    if (!Array.isArray(data)) {
-      console.warn('mapDtoToProps recibió datos no válidos:', data);
-      return [];
-    }
-    return data.map((n, index: number) => ({
-      ...n,
-      /*
+function mapDtoToProps(data: NinoReadDto[]): NinoProps[] {
+  if (!Array.isArray(data)) {
+    console.warn('mapDtoToProps recibió datos no válidos:', data);
+    return [];
+  }
+  return data.map((n, index: number) => ({
+    ...n,
+    /*
       nombre: n.nombre,
       fechaNacimiento: n.fechaNacimiento,
       direccion: n.fechaIngreso,
       telefono: n.cedulaPagador,
       */
-      avatarUrl: `/assets/images/avatar/avatar-${index + 1}.webp`, // o lógica para obtener la URL del avatar
-    }));
-  }
+    avatarUrl: `/assets/images/avatar/avatar-${index + 1}.webp`, // o lógica para obtener la URL del avatar
+  }));
+}

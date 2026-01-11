@@ -1,10 +1,10 @@
 import {
   Dialog,
+  Button,
+  Typography,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button,
-  Typography,
 } from '@mui/material';
 
 type ConfirmDialogProps = {

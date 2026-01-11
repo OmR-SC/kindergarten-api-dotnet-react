@@ -1,19 +1,18 @@
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Table from '@mui/material/Table';
-import Button from '@mui/material/Button';
-import TableBody from '@mui/material/TableBody';
+// import Card from '@mui/material/Card';
+// import Table from '@mui/material/Table';
+// import Button from '@mui/material/Button';
+// import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
-import TableContainer from '@mui/material/TableContainer';
-import TablePagination from '@mui/material/TablePagination';
+// import TableContainer from '@mui/material/TableContainer';
+// import TablePagination from '@mui/material/TablePagination';
 
-import { _users } from 'src/_mock';
-import { DashboardContent } from 'src/layouts/dashboard';
+// import { DashboardContent } from 'src/layouts/dashboard';
 
-import { Iconify } from 'src/components/iconify';
-import { Scrollbar } from 'src/components/scrollbar';
+// import { Iconify } from 'src/components/iconify';
+// import { Scrollbar } from 'src/components/scrollbar';
 
 /*
 import { TableNoData } from '../table-no-data';
@@ -29,9 +28,9 @@ import type { UserProps } from '../user-table-row';
 // ----------------------------------------------------------------------
 
 export function WelcomeView() {
-  const table = useTable();
+  //const table = useTable();
 
-  const [filterName, setFilterName] = useState('');
+  //const [filterName, setFilterName] = useState('');
 
   /*
   const dataFiltered: UserProps[] = applyFilter({
@@ -44,7 +43,6 @@ export function WelcomeView() {
   //const notFound = !dataFiltered.length && !!filterName;
 
   return (
-
     <>
       {/* <h1>Hola Mundo</h1> */}
       <Box sx={{ p: 4 }}>
@@ -52,7 +50,7 @@ export function WelcomeView() {
         <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
           Coming soon…
         </Typography>
-      </Box>    
+      </Box>
     </>
   );
 }
