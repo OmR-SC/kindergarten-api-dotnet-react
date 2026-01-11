@@ -23,9 +23,11 @@ Un sistema integral para la gestión de guarderías, diseñado para administrar 
 
 ## 📸 Capturas de Pantalla
 
-*(Sube unas 2 o 3 imágenes de tu app a una carpeta /docs o súbelas a un issue de github y pega el link aquí)*
-![Dashboard](link-a-tu-imagen-dashboard.png)
-![Formulario](link-a-tu-imagen-formulario.png)
+## Read
+![Dashboard](assets/dashboard.png)
+
+## Insert & Update
+![Formulario](assets/formulario.png)
 
 ## ⚙️ Instalación y Ejecución
 
@@ -67,7 +69,7 @@ dotnet run
 ```bash
 cd frontend
 npm install
-echo VITE_API_URL=http://localhost:5214 > .env.local
+echo VITE_API_URL=http://localhost:5214 > .env
 npm run dev
 ```
 
