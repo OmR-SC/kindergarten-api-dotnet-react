@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { PersonaView } from './persona-view';
+
+import { it, vi, expect, describe, afterEach, beforeEach } from 'vitest';
+import { render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
+
 import * as personaApi from 'src/api/persona';
+
+import { PersonaView } from './persona-view';
 
 // ----------------------------------------------------------------------
 
@@ -20,8 +23,8 @@ vi.mock('src/components/iconify', () => ({
 
 // 3. Mockeamos el Dialog de Persona para evitar problemas con validaciones/formularios complejos en este test
 vi.mock('../components/PersonaFormDialog', () => ({
-  PersonaFormDialog: ({ open }: { open: boolean }) => 
-    open ? <div role="dialog">Mock Persona Dialog</div> : null
+  PersonaFormDialog: ({ open }: { open: boolean }) =>
+    open ? <div role="dialog">Mock Persona Dialog</div> : null,
 }));
 
 // Datos de prueba (Dummy Data)

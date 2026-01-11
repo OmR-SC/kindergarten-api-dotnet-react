@@ -1,4 +1,4 @@
-import { Label } from 'src/components/label';
+//import { Label } from 'src/components/label';
 import { SvgColor } from 'src/components/svg-color';
 
 // ----------------------------------------------------------------------
@@ -29,7 +29,7 @@ export const navData = [
     path: '/nino',
     icon: icon('ic-user'),
   },
-  
+
   /*
   ,
   {
@@ -63,5 +63,4 @@ export const navData = [
   },
 
   */
-  
 ];

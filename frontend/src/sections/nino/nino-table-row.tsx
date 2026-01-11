@@ -10,7 +10,7 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
-import { Label } from 'src/components/label';
+//import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -33,13 +33,7 @@ type NinoTableRowProps = {
   onDelete: (nino: NinoProps) => void;
 };
 
-export function NinoTableRow({
-  row,
-  selected,
-  onSelectRow,
-  onEdit,
-  onDelete,
-}: NinoTableRowProps) {
+export function NinoTableRow({ row, selected, onSelectRow, onEdit, onDelete }: NinoTableRowProps) {
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
   const handleOpenPopover = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
+import { it, describe, vi, expect, afterEach, beforeEach } from 'vitest';
+import { render, screen, waitFor, cleanup, fireEvent } from '@testing-library/react';
 
 import * as ninosApi from 'src/api/ninos';
 
@@ -20,8 +20,8 @@ vi.mock('src/components/iconify', () => ({
 }));
 
 vi.mock('../components/NinoFormDialog', () => ({
-  NinoFormDialog: ({ open }: { open: boolean }) => 
-    open ? <div role="dialog">Mock Dialog Content</div> : null
+  NinoFormDialog: ({ open }: { open: boolean }) =>
+    open ? <div role="dialog">Mock Dialog Content</div> : null,
 }));
 
 const mockNinos = [
@@ -71,7 +71,7 @@ describe('NinoView Component', () => {
     render(<NinoView />);
 
     await waitFor(() => {
-        expect(screen.queryByText('Pepito Perez')).not.toBeInTheDocument();
+      expect(screen.queryByText('Pepito Perez')).not.toBeInTheDocument();
     });
   });
 
@@ -83,9 +83,9 @@ describe('NinoView Component', () => {
     fireEvent.click(addButtons[0]);
 
     await waitFor(() => {
-        const dialog = screen.getByRole('dialog'); 
-        expect(dialog).toBeInTheDocument();
-        expect(screen.getByText('Mock Dialog Content')).toBeInTheDocument();
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toBeInTheDocument();
+      expect(screen.getByText('Mock Dialog Content')).toBeInTheDocument();
     });
   });
 });

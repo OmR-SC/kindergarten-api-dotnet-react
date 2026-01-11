@@ -1,4 +1,6 @@
-import { useState, useCallback, useEffect } from 'react';
+import type { PersonaReadDto, PersonaCreateDto } from 'src/types/persona';
+
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -12,12 +14,10 @@ import TablePagination from '@mui/material/TablePagination';
 
 //import { _users } from 'src/_mock';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { deletePersona, getPersonas } from 'src/api/persona';
+import { getPersonas, deletePersona } from 'src/api/persona';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-
-import { PersonaCreateDto, PersonaReadDto } from 'src/types/persona';
 
 import { TableNoData } from '../table-no-data';
 import { TableEmptyRows } from '../table-empty-rows';
